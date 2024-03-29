@@ -1,0 +1,19 @@
+{
+  "recommendations": [
+    "dart-code.flutter",
+    "dart-code.dart-code",
+    "pkief.material-icon-theme",
+    "eamodio.gitlens",
+    "esbenp.prettier-vscode",
+    "marcelovelasquez.flutter-tree",
+    "davidwoo.flutter-auto-import",
+    "usernamehw.errorlens",
+    "circlecodesolution.ccs-flutter-color",
+    "pflannery.vscode-versionlens",
+    "streetsidesoftware.code-spell-checker",
+    "gruntfuggly.todo-tree",
+    "mosapride.zenkaku",
+    "oderwat.indent-rainbow",
+    "shardulm94.trailing-spaces"
+  ]
+}
