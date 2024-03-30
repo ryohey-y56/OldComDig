@@ -1,4 +1,4 @@
-# camera version0.1.0
+# OldComDig version0.1.0
 
 A new Flutter project.
 
