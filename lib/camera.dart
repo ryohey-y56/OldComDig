@@ -1,7 +1,10 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
+import 'package:image_picker/image_picker.dart';
 
 Future<void> main() async {
   // main 関数内で非同期処理を呼び出すための設定
@@ -9,9 +12,11 @@ Future<void> main() async {
 
   // デバイスで使用可能なカメラのリストを取得
   final cameras = await availableCameras();
-
+  for (var cameraElement in cameras) {
+    debugPrint('$cameraElement');
+  }
   // 利用可能なカメラのリストから特定のカメラを取得
-  final firstCamera = cameras.first;
+  final firstCamera = cameras.elementAt(0);
 
   runApp(MyApp(camera: firstCamera));
 }
@@ -77,33 +82,48 @@ class TakePictureScreenState extends State<TakePictureScreen> {
   Widget build(BuildContext context) {
     // FutureBuilder で初期化を待ってからプレビューを表示（それまではインジケータを表示）
     return Scaffold(
-      body: Center(
-        child: FutureBuilder<void>(
-          future: _initializeControllerFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.done) {
-              return CameraPreview(_controller);
-            } else {
-              return const CircularProgressIndicator();
-            }
-          },
+        body: Center(
+          child: FutureBuilder<void>(
+            future: _initializeControllerFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.done) {
+                return CameraPreview(_controller);
+              } else {
+                return const CircularProgressIndicator();
+              }
+            },
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          //写真を撮る
-          final image = await _controller.takePicture();
-          //表示用の画面に遷移
-          await Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => DisplayPictureScreen(imagepath: image.path),
-              fullscreenDialog: true,
+        floatingActionButton: Row(
+          //mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            FloatingActionButton(
+              onPressed: () {
+                final picker = ImagePicker();
+                picker.pickImage(source: ImageSource.gallery);
+              },
+              child: const Icon(Icons.image),
             ),
-          );
-        },
-        child: const Icon(Icons.camera_alt),
-      ),
-    );
+            FloatingActionButton(
+              onPressed: () async {
+                //写真を撮る
+                final image = await _controller.takePicture();
+                final Uint8List buffer = await image.readAsBytes();
+                await ImageGallerySaver.saveImage(buffer, name: image.name);
+                //表示用の画面に遷移
+                await Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        DisplayPictureScreen(imagepath: image.path),
+                    fullscreenDialog: true,
+                  ),
+                );
+              },
+              child: const Icon(Icons.camera_alt),
+            )
+          ],
+        ));
   }
 }
 
