@@ -49,6 +49,8 @@
 	<string>カメラを使う理由・用途を記述（ここをちゃんと書かないと、Appleのレビューでリジェクトされます）</string> //TODO説明書く
 	<key>NSMicrophoneUsageDescription</key>
 	<string>マイクを使う理由・用途を記述（ここをちゃんと書かないと、Appleのレビューでリジェクトされます）</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>ライブラリを使う理由・用途を記述（ここをちゃんと書かないと、Appleのレビューでリジェクトされます）</string>
 </dict>
 </plist>
 </dict>
