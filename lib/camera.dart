@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter/services.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:external_path/external_path.dart';
@@ -22,7 +23,12 @@ Future<void> main() async {
   }
   // 利用可能なカメラのリストから特定のカメラを取得
   final firstCamera = cameras.elementAt(0);
-
+  //画面を絶対横向きにする
+  WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+  ]);
   runApp(MyApp(camera: firstCamera));
 }
 
@@ -138,7 +144,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 //画像の保存
 Future<void> saveimage(File file) async {
   final tempDir = await getTemporaryDirectory();
-  final albumName = 'oldComDig';
+  const albumName = 'oldComDig';
 
   // create save directory
   if (Platform.isAndroid) {
@@ -146,7 +152,7 @@ Future<void> saveimage(File file) async {
       ExternalPath.DIRECTORY_PICTURES,
     );
     final albumPath = '$picturesPath/$albumName';
-    print(albumPath);
+    debugPrint(albumPath);
     // If directory does not exist, create directory before writing.
     await Directory(albumPath).create(recursive: true);
   }
@@ -154,13 +160,13 @@ Future<void> saveimage(File file) async {
   final now = DateTime.now();
   DateFormat outputFormat = DateFormat('yyyy-MM-dd_HH-mm_ssS');
   final fileName = '${outputFormat.format(now)}.jpg';
-  print('file name: $fileName');
+  debugPrint('file name: $fileName');
 
   final uint8list = file.readAsBytesSync();
   final List<int> fileByte = uint8list;
   file = File('${tempDir.path}/$fileName')
         ..writeAsBytesSync(fileByte);
-  print('temp file path: ${file.path}');
+  debugPrint('temp file path: ${file.path}');
   final permissionState = await PhotoManager.requestPermissionExtend();
   if (!permissionState.isAuth) {
     debugPrint('Please allow access and try again.');
@@ -173,7 +179,7 @@ Future<void> saveimage(File file) async {
     title: fileName,
     relativePath: Platform.isAndroid ? 'Pictures/$albumName' : albumName,
   );
-  print('assetEntity: $assetEntity');
+  debugPrint('assetEntity: $assetEntity');
 
   // iOS needs tagging to image.
   if (Platform.isIOS) {
@@ -189,7 +195,7 @@ Future<void> saveimage(File file) async {
 
   // clear cache
   file.deleteSync(recursive: true);
-  print('completed!');
+  debugPrint('completed!');
 }
 
 //撮影した写真を表示する画面
