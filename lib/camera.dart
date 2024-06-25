@@ -1,10 +1,8 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:external_path/external_path.dart';
 import 'package:photo_manager/photo_manager.dart';
@@ -98,7 +96,11 @@ class TakePictureScreenState extends State<TakePictureScreen> {
             future: _initializeControllerFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.done) {
-                return CameraPreview(_controller);
+                //上からフィルターかける(取った写真にはフィルターはかからない)
+                return ColorFiltered(
+                    colorFilter: ColorFilter.mode(
+                        Colors.red.withOpacity(0.3), BlendMode.srcATop),
+                    child: CameraPreview(_controller));
               } else {
                 return const CircularProgressIndicator();
               }
@@ -112,6 +114,9 @@ class TakePictureScreenState extends State<TakePictureScreen> {
             //画像を開く
             FloatingActionButton(
               onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) =>
+                        DisplayGallalyScreen(imagefile: loadimage())));
                 final picker = ImagePicker();
                 picker.pickImage(source: ImageSource.gallery);
               },
@@ -123,8 +128,8 @@ class TakePictureScreenState extends State<TakePictureScreen> {
                 final image = await _controller.takePicture();
                 final file = File(image.path);
                 saveimage(file);
-                final Uint8List buffer = await image.readAsBytes();
-                await ImageGallerySaver.saveImage(buffer, name: image.name);
+                //final Uint8List buffer = await image.readAsBytes();
+                //await ImageGallerySaver.saveImage(buffer, name: image.name);
                 //表示用の画面に遷移
                 await Navigator.of(context).push(
                   MaterialPageRoute(
@@ -164,8 +169,7 @@ Future<void> saveimage(File file) async {
 
   final uint8list = file.readAsBytesSync();
   final List<int> fileByte = uint8list;
-  file = File('${tempDir.path}/$fileName')
-        ..writeAsBytesSync(fileByte);
+  file = File('${tempDir.path}/$fileName')..writeAsBytesSync(fileByte);
   debugPrint('temp file path: ${file.path}');
   final permissionState = await PhotoManager.requestPermissionExtend();
   if (!permissionState.isAuth) {
@@ -198,6 +202,23 @@ Future<void> saveimage(File file) async {
   debugPrint('completed!');
 }
 
+//画像の読み込み
+File loadimage() {
+  debugPrint('loadimage');
+  String? albumpath;
+  if (Platform.isAndroid) {
+    final imagepath = ExternalPath.getExternalStoragePublicDirectory(
+        ExternalPath.DIRECTORY_PICTURES);
+    albumpath = '$imagepath/OldComDig';
+  }
+  if (Platform.isIOS) {
+    albumpath = getTemporaryDirectory().toString();
+  }
+  File imagefile = File(albumpath ?? '/aaaaa');
+  debugPrint('loadimage2');
+  return imagefile;
+}
+
 //撮影した写真を表示する画面
 class DisplayPictureScreen extends StatelessWidget {
   const DisplayPictureScreen({Key? key, required this.imagepath})
@@ -210,6 +231,20 @@ class DisplayPictureScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('撮れた写真')),
       body: Center(child: Image.file(File(imagepath))),
+    );
+  }
+}
+
+//このアプリで取った写真を見る
+class DisplayGallalyScreen extends StatelessWidget {
+  const DisplayGallalyScreen({Key? key, required this.imagefile})
+      : super(key: key);
+  final File imagefile;
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('いったん')),
+      body: Center(child: Image.file(imagefile)),
     );
   }
 }
